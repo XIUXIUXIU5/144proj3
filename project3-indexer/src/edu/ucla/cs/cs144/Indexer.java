@@ -27,7 +27,28 @@ public class Indexer {
     /** Creates a new instance of Indexer */
     public Indexer() {
     }
+
+    private IndexWriter indexWriter = null;
+
+    public IndexWriter getIndexWriter(boolean create) throws IOException {
+        if (indexWriter == null) {
+            Directory indexDir = FSDirectory.open(new File("index-directory"));
+            IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_4_10_2, new StandardAnalyzer());
+            indexWriter = new IndexWriter(indexDir, config);
+        }
+        return indexWriter;
+   }
+
+    public void closeIndexWriter() throws IOException {
+        if (indexWriter != null) {
+            indexWriter.close();
+        }
+   }
  
+    public void indexItem(Hotel hotel) throws IOException {
+    
+    }
+
     public void rebuildIndexes() {
 
         Connection conn = null;
@@ -39,6 +60,12 @@ public class Indexer {
 	    System.out.println(ex);
 	}
 
+    getIndexWriter(true);
+
+    Hotel[] hotels = HotelDatabase.getHotels();
+    for(Hotel hotel : hotels) {
+        indexHotel(hotel);
+    }
 
 	/*
 	 * Add your code here to retrieve Items using the connection
@@ -59,6 +86,7 @@ public class Indexer {
 	 * 
 	 */
 
+    closeIndexWriter();
 
         // close the database connection
 	try {
