@@ -49,15 +49,63 @@ public class AuctionSearch implements IAuctionSearch {
          * placed at src/edu/ucla/cs/cs144.
          *
          */
+
+	private IndexSearcher searcher = null;
+	private QueryParser parser = null;
+
+	public IndexSearcher getSearchEngine() throws IOException {
+		if (searcher == null) {
+			searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File("/var/lib/lucene/index1"))));
+		}
+		return searcher;
+	}
+
+	public QueryParser getQueryParser() {
+		if (parser == null) {
+			parser = new QueryParser("content", new StandardAnalyzer());
+		}
+		return parser;
+	}
 	
 	public SearchResult[] basicSearch(String query, int numResultsToSkip, 
-			int numResultsToReturn) {
-		// TODO: Your code here!
-		return new SearchResult[0];
+		int numResultsToReturn) {
+		IndexSearcher s = null;
+		Query q = null;
+		SearchResult[] result = null;
+
+		try {
+			s = getSearchEngine();
+		} catch (IOException ex) {
+			System.out.println(ex);
+		}
+		QueryParser p = getQueryParser();
+
+		try {
+			q = p.parse(query);
+		} catch (ParseException ex) {
+			System.out.println(ex);
+		}
+
+		try{
+			TopDocs topDocs = s.search(q, numResultsToSkip + numResultsToReturn);
+			ScoreDoc[] hits = topDocs.scoreDocs;
+			
+			if (hits.length - numResultsToSkip > 0) {
+				result = new SearchResult[hits.length - numResultsToSkip];
+				for (int i = numResultsToSkip; i < hits.length; i++) {
+					Document doc = s.doc(hits[i].doc);
+					result[i - numResultsToSkip] = new SearchResult(doc.get("id"), doc.get("name"));
+				}
+			}
+		} catch (IOException ex) {
+			System.out.println(ex);
+		}
+
+		return result;
 	}
 
 	public SearchResult[] spatialSearch(String query, SearchRegion region,
-			int numResultsToSkip, int numResultsToReturn) {
+		int numResultsToSkip, int numResultsToReturn) {
 		// TODO: Your code here!
 		return new SearchResult[0];
 	}
