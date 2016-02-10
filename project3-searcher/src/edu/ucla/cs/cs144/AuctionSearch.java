@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.analysis.Analyzer;
@@ -107,7 +108,47 @@ public class AuctionSearch implements IAuctionSearch {
 	public SearchResult[] spatialSearch(String query, SearchRegion region,
 		int numResultsToSkip, int numResultsToReturn) {
 		// TODO: Your code here!
-		return new SearchResult[0];
+		String spactialQ = "select ItemID from ItemRegion where " + region.getLx() +"< x(LocationPoint) and x(LocationPoint) < "+ region.getRx()+" and y(LocationPoint) < "+region.getRy()+" and y(LocationPoint) > "+region.getLy()+";";
+		Connection conn = null;
+		Statement s = null;
+		ResultSet rs = null;
+		System.out.println(spactialQ);
+        // create a connection to the database to retrieve Items from MySQL
+		HashSet<String> hash = new HashSet<String>();
+		SearchResult[] basicResult = basicSearch(query,numResultsToSkip,numResultsToReturn);
+		ArrayList<SearchResult> resultlist = new ArrayList<SearchResult>();
+
+		System.out.println(basicResult.length);
+		for(SearchResult result : basicResult) {
+			System.out.println(result.getItemId() + ": " + result.getName());
+		}
+		try {
+			conn = DbManager.getConnection(true);
+			s = conn.createStatement();
+			rs = s.executeQuery(spactialQ);
+			while( rs.next() ){
+				String itemid = ""+rs.getInt("ItemID");
+				hash.add(itemid);
+
+			}
+			rs.close();
+			s.close();
+			conn.close();
+		} catch (SQLException ex) {
+			System.out.println(ex);
+		}
+		System.out.println(hash.size());
+		for (int i = 0; i < basicResult.length;i++ ) {
+			if(hash.contains(basicResult[i].getItemId()))
+			{
+				resultlist.add(basicResult[i]);
+			}
+		}
+
+		System.out.println(resultlist.size());
+		SearchResult[] result = new SearchResult[resultlist.size()];
+		result = resultlist.toArray(result);
+		return result;
 	}
 
 	public String getXMLDataForItemId(String itemId) {
