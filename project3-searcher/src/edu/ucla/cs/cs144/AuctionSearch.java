@@ -118,10 +118,6 @@ public class AuctionSearch implements IAuctionSearch {
 		SearchResult[] basicResult = basicSearch(query,numResultsToSkip,numResultsToReturn);
 		ArrayList<SearchResult> resultlist = new ArrayList<SearchResult>();
 
-		System.out.println(basicResult.length);
-		for(SearchResult result : basicResult) {
-			System.out.println(result.getItemId() + ": " + result.getName());
-		}
 		try {
 			conn = DbManager.getConnection(true);
 			s = conn.createStatement();
@@ -137,6 +133,7 @@ public class AuctionSearch implements IAuctionSearch {
 		} catch (SQLException ex) {
 			System.out.println(ex);
 		}
+
 		System.out.println(hash.size());
 		for (int i = 0; i < basicResult.length;i++ ) {
 			if(hash.contains(basicResult[i].getItemId()))
@@ -153,7 +150,147 @@ public class AuctionSearch implements IAuctionSearch {
 
 	public String getXMLDataForItemId(String itemId) {
 		// TODO: Your code here!
-		return "";
+		String result = "";
+		Connection conn = null;
+		Statement s = null;
+		Statement sc = null;
+		ResultSet rs = null;
+		ResultSet rc = null;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        SimpleDateFormat ss = new SimpleDateFormat("MMM-dd-yy hh:mm:ss");
+
+		try {
+			String query = "select * from Item where ItemID = " + itemId + ";";
+			String queryc = "select Category from ItemCategory where ItemID = " +itemId+";";
+			conn = DbManager.getConnection(true);
+			s = conn.createStatement();
+			sc = conn.createStatement();
+
+			rs = s.executeQuery(query);
+			rc = sc.executeQuery(queryc);
+			if (rs.next()) {
+				result += "<Item ItemID=\""+itemId+"\">\n  <Name>"+rs.getString("Name")+ "</Name>";
+				while(rc.next())
+				{
+					result += "\n  <Category>"+rc.getString("Category")+ "</Category>";
+				}
+
+				sc.close();
+				rc.close();
+				
+				String element = Double.toString(rs.getDouble("Currently"));
+				if (element.length() != 0) {
+					result += "\n  <Currently>$"+element+ "</Currently>";
+				}
+				
+				element = Double.toString(rs.getDouble("First_Bid"));
+				if (element.length() != 0) {
+					result += "\n  <First_Bid>$"+element+ "</First_Bid>";
+				}
+
+				element = Integer.toString(rs.getInt("Number_of_Bids"));
+				if (element.length() != 0) {
+					result += "\n  <Number_of_Bids>"+element+"</Number_of_Bids>";
+				}
+
+				if (rs.getInt("Number_of_Bids") == 0) {
+					result += "\n  <Bids />";
+				}
+				else
+				{
+					String queryb = "select * from ItemBid where ItemID = " + itemId+ ";";
+					Statement sb = conn.createStatement();
+					ResultSet rb = sb.executeQuery(queryb);
+					result += "\n  <Bids>";
+					while(rb.next())
+					{
+						result += "\n    <Bid>";
+						String querybidder = "select * from Bidder where BidderID = \"" +rb.getString("BidderID")+ "\";";
+						Statement sbidder = conn.createStatement();
+						ResultSet rbidder = sbidder.executeQuery(querybidder);
+						rbidder.next();
+						result += "\n      <Bidder Rating=\""+Double.toString(rbidder.getDouble("Rating"))+"\" UserID=\""+rbidder.getString("BidderID")+"\">";
+						result += "\n        <Location>" +rbidder.getString("Location")+"</Location>";
+						result += "\n        <Country>" +rbidder.getString("Country")+"</Country>";
+						result += "\n      </Bidder>";
+
+						Date timeDate = sdf.parse(rb.getString("Time"));
+						result += "\n      <Time>"+ss.format(timeDate)+"</Time>";
+						result += "\n      <Amount>$"+rb.getString("Amount")+"</Amount>";
+						result += "\n    </Bid>";
+						sbidder.close();
+						rbidder.close();
+					}
+					result += "\n  </Bids>";
+					sb.close();
+					rb.close();
+				}
+
+				
+				Double latitude = rs.getDouble("Latitude");
+				Double logitude = rs.getDouble("Logitude");
+				if (latitude== 0 && logitude == 0) {
+					result += "\n  <Location>" +rs.getString("Location")+"</Location>";
+				}
+				else
+				{
+					result += "\n  <Location";
+					if (latitude != 0) {
+						result += " Latitude=\"" +Double.toString(latitude)+"\"";
+						if (logitude != 0) {
+							result += " Logitude=\""+ Double.toString(logitude) + "\">";
+						}
+						else
+							result += ">";
+					}
+					else
+					{
+						result +=" Logitude=\""+ Double.toString(logitude) + "\">";
+					}
+					result += rs.getString("Location") + "</Location>";
+				}
+
+				element = rs.getString("Country");
+				if (element.length() != 0) {
+					result += "\n  <Country>"+element+"</Country>";
+				}
+				element = rs.getString("Started");
+				if (element.length() != 0) {
+					Date startdate = sdf.parse(element);
+					result += "\n  <Started>"+ss.format(startdate)+"</Started>";
+				}
+				element = rs.getString("Ends");
+				if (element.length() != 0) {
+					Date enddate = sdf.parse(element);
+
+					result += "\n  <Ends>"+ss.format(enddate)+"</Ends>";
+				}
+
+				String queryseller = "select * from Seller where SellerID = \"" + rs.getString("SellerID")+ "\";";
+				Statement sseller = conn.createStatement();
+				ResultSet rseller = sseller.executeQuery(queryseller);
+				rseller.next();
+				result += "\n  <Seller Rating=\""+Double.toString(rseller.getDouble("Rating"))+ "\" UserID=\""+rseller.getString("SellerID")+"\" />";
+
+				sseller.close();
+				rseller.close();
+
+				result += "\n  <Description>"+rs.getString("Description")+"</Description>";
+				result += "\n</Item>";
+
+				s.close();
+				rs.close();
+				conn.close();
+			}
+			else
+				return "";
+
+
+
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+		return result;
 	}
 	
 	public String echo(String message) {
