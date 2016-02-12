@@ -74,6 +74,7 @@ public class AuctionSearch implements IAuctionSearch {
 		Query q = null;
 		SearchResult[] result = null;
 		QueryParser p = getQueryParser();
+		Boolean returnR = false;
 
 		try {
 			s = getSearchEngine();
@@ -92,6 +93,7 @@ public class AuctionSearch implements IAuctionSearch {
 			ScoreDoc[] hits = topDocs.scoreDocs;
 			
 			if (hits.length - numResultsToSkip > 0) {
+				returnR = true;
 				result = new SearchResult[hits.length - numResultsToSkip];
 				for (int i = numResultsToSkip; i < hits.length; i++) {
 					Document doc = s.doc(hits[i].doc);
@@ -102,7 +104,10 @@ public class AuctionSearch implements IAuctionSearch {
 			System.out.println(ex);
 		}
 
-		return result;
+		if (returnR) {
+			return result;
+		}
+		return new SearchResult[0];
 	}
 
 	public SearchResult[] spatialSearch(String query, SearchRegion region,
@@ -138,7 +143,7 @@ public class AuctionSearch implements IAuctionSearch {
 		}
 
 		int j = 0;
-		while(resultlist.size() < numResultsToReturn && basicResult != null){
+		while(resultlist.size() < numResultsToReturn && basicResult.length != 0){
 			for (int i = 0; i < basicResult.length;i++ ) {
 				if(hash.contains(basicResult[i].getItemId()))
 				{
@@ -148,10 +153,13 @@ public class AuctionSearch implements IAuctionSearch {
 			j++;
 			basicResult = basicSearch(query,numResultsToReturn*j, numResultsToReturn);			
 		}
+		if (resultlist.size() > 0) {
+			SearchResult[] result = new SearchResult[resultlist.size()];
+			result = resultlist.toArray(result);
+			return result;			
+		}
 
-		SearchResult[] result = new SearchResult[resultlist.size()];
-		result = resultlist.toArray(result);
-		return result;
+		return new SearchResult[0];
 	}
 
 	public String getXMLDataForItemId(String itemId) {

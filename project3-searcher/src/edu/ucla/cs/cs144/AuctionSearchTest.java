@@ -33,20 +33,20 @@ public class AuctionSearchTest {
 			System.out.println(result.getItemId() + ": " + result.getName());
 		}
 		
-		String itemId = "1046028995";
+		String itemId = "1045700537";
 		String item = as.getXMLDataForItemId(itemId);
 		System.out.println("XML data for ItemId: " + itemId);
 		System.out.println(item);
 
 		// Add your own test here
 
-		query = "star trek";
-		basicResults = as.basicSearch(query, 30, 800);
-		System.out.println("Basic Seacrh Query: " + query);
-		System.out.println("Received " + basicResults.length + " results");
-		for(SearchResult result : basicResults) {
-			System.out.println(result.getItemId() + ": " + result.getName());
-		}
+		// query = "star trek";
+		// basicResults = as.basicSearch(query, 30, 800);
+		// System.out.println("Basic Seacrh Query: " + query);
+		// System.out.println("Received " + basicResults.length + " results");
+		// for(SearchResult result : basicResults) {
+		// 	System.out.println(result.getItemId() + ": " + result.getName());
+		// }
 
 
 	}

@@ -25,7 +25,7 @@ public interface IAuctionSearch {
 	 * 
 	 * @param query The keyword phrase for the search.
 	 * @param region SearchRegion object that represents the rectangular
-                  spatial region (in latitude and langitude)
+     *             spatial region (in latitude and langitude)
 	 * @param numResultsToSkip The desired number of results to skip from 
 	 * the beginning of the full results.
 	 * @param numResultsToReturn The desired number of results to return.
