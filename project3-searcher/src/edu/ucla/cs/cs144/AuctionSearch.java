@@ -200,8 +200,8 @@ public class AuctionSearch implements IAuctionSearch {
 				element = Integer.toString(rs.getInt("Number_of_Bids"));
 				if (element.length() != 0) 
 					result += "\n  <Number_of_Bids>"+element+"</Number_of_Bids>";
-
-				if (rs.getInt("Number_of_Bids") == 0) 
+				int numbid = rs.getInt("Number_of_Bids");
+				if (numbid == 0) 
 					result += "\n  <Bids />";
 				else {
 					String queryb = "select * from ItemBid where ItemID = " + itemId+ ";";
@@ -215,11 +215,31 @@ public class AuctionSearch implements IAuctionSearch {
 						Statement sbidder = conn.createStatement();
 						ResultSet rbidder = sbidder.executeQuery(querybidder);
 						rbidder.next();
-						
-						result += "\n      <Bidder Rating=\""+Double.toString(rbidder.getDouble("Rating"))+"\" UserID=\""+rbidder.getString("BidderID")+"\">";
-						result += "\n        <Location>" +escapeChar(rbidder.getString("Location"))+"</Location>";
-						result += "\n        <Country>" +escapeChar(rbidder.getString("Country"))+"</Country>";
-						result += "\n      </Bidder>";
+
+						Boolean addend = false;
+						String bidderloc = escapeChar(rbidder.getString("Location"));
+						String bidderCoun = escapeChar(rbidder.getString("Country"));
+
+						if (bidderloc.length() != 0 || bidderCoun.length() != 0) {
+							addend = true;
+						}
+						result += "\n      <Bidder Rating=\""+Double.toString(rbidder.getDouble("Rating"))+"\" UserID=\""+rbidder.getString("BidderID")+"\"";
+
+						if (addend) {
+							result += ">";	
+						}
+						else
+							result += " />";
+
+						if (bidderloc.length() > 0) {
+							result += "\n        <Location>" +bidderloc+"</Location>";
+						}
+						if (bidderCoun.length() > 0) {
+							result += "\n        <Country>" +bidderCoun+"</Country>";
+						}
+						if (addend) {
+							result += "\n      </Bidder>";
+						}
 
 						Date timeDate = sdf.parse(rb.getString("Time"));
 						result += "\n      <Time>"+ss.format(timeDate)+"</Time>";
