@@ -34,6 +34,7 @@ public class Indexer {
         if (indexWriter == null) {
             Directory indexDir = FSDirectory.open(new File("/var/lib/lucene/index1"));
             IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_4_10_2, new StandardAnalyzer());
+            config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
             indexWriter = new IndexWriter(indexDir, config);
         }
         return indexWriter;

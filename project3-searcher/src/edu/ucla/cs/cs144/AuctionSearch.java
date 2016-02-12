@@ -177,10 +177,10 @@ public class AuctionSearch implements IAuctionSearch {
 			rs = s.executeQuery(query);
 			rc = sc.executeQuery(queryc);
 			if (rs.next()) {
-				result += "<Item ItemID=\""+itemId+"\">\n  <Name>"+rs.getString("Name")+ "</Name>";
+				result += "<Item ItemID=\""+itemId+"\">\n  <Name>"+escapeChar(rs.getString("Name"))+ "</Name>";
 				while(rc.next())
 				{
-					result += "\n  <Category>"+rc.getString("Category")+ "</Category>";
+					result += "\n  <Category>"+escapeChar(rc.getString("Category"))+ "</Category>";
 				}
 
 				sc.close();
@@ -218,8 +218,8 @@ public class AuctionSearch implements IAuctionSearch {
 						ResultSet rbidder = sbidder.executeQuery(querybidder);
 						rbidder.next();
 						result += "\n      <Bidder Rating=\""+Double.toString(rbidder.getDouble("Rating"))+"\" UserID=\""+rbidder.getString("BidderID")+"\">";
-						result += "\n        <Location>" +rbidder.getString("Location")+"</Location>";
-						result += "\n        <Country>" +rbidder.getString("Country")+"</Country>";
+						result += "\n        <Location>" +escapeChar(rbidder.getString("Location"))+"</Location>";
+						result += "\n        <Country>" +escapeChar(rbidder.getString("Country"))+"</Country>";
 						result += "\n      </Bidder>";
 
 						Date timeDate = sdf.parse(rb.getString("Time"));
@@ -238,7 +238,7 @@ public class AuctionSearch implements IAuctionSearch {
 				Double latitude = rs.getDouble("Latitude");
 				Double logitude = rs.getDouble("Logitude");
 				if (latitude== 0 && logitude == 0) {
-					result += "\n  <Location>" +rs.getString("Location")+"</Location>";
+					result += "\n  <Location>" +escapeChar(rs.getString("Location"))+"</Location>";
 				}
 				else
 				{
@@ -255,10 +255,10 @@ public class AuctionSearch implements IAuctionSearch {
 					{
 						result +=" Longitude=\""+ Double.toString(logitude) + "\">";
 					}
-					result += rs.getString("Location") + "</Location>";
+					result += escapeChar(rs.getString("Location")) + "</Location>";
 				}
 
-				element = rs.getString("Country");
+				element = escapeChar(rs.getString("Country"));
 				if (element.length() != 0) {
 					result += "\n  <Country>"+element+"</Country>";
 				}
@@ -283,7 +283,7 @@ public class AuctionSearch implements IAuctionSearch {
 				sseller.close();
 				rseller.close();
 
-				result += "\n  <Description>"+rs.getString("Description")+"</Description>";
+				result += "\n  <Description>"+escapeChar(rs.getString("Description"))+"</Description>";
 				result += "\n</Item>";
 
 				s.close();
@@ -292,15 +292,40 @@ public class AuctionSearch implements IAuctionSearch {
 			}
 			else
 				return "";
-
-
-
 		} catch (Exception e) {
 			System.out.println(e);
 		}
 		return result;
 	}
 	
+	private String escapeChar(final String text) {
+      String result = "";
+      for (int i = 0; i < text.length(); i++) {
+         char c = text.charAt(i);
+         switch (c) {
+         case '\"':
+            result += "&quot;";
+            break;
+         case '\'':
+            result += "&apos;";
+            break;
+         case '<':
+            result += "&lt;";
+            break;
+         case '>':
+            result += "&gt;";
+            break;
+         case '&':
+            result += "&amp;";
+            break;
+         default:
+            result += c;
+            break;
+         }
+      }
+      return result;
+   }
+
 	public String echo(String message) {
 		return message;
 	}
