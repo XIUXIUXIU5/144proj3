@@ -53,8 +53,8 @@ public class Indexer {
         int id = item.getInt("ItemID");
         doc.add(new StringField("id", Integer.toString(id), Field.Store.YES));
         doc.add(new StringField("name", item.getString("Name"), Field.Store.YES));
+        
         String fullSearchableText = item.getString("Name") + " " + item.getString("Description") + category;
-
         doc.add(new TextField("content", fullSearchableText, Field.Store.NO));
         writer.addDocument(doc);
     }
@@ -62,21 +62,19 @@ public class Indexer {
     public void rebuildIndexes() throws SQLException, IOException {
 
         Connection conn = null;
-
-        // create a connection to the database to retrieve Items from MySQL
         try {
-           conn = DbManager.getConnection(true);
-       } catch (SQLException ex) {
-           System.out.println(ex);
-       }
+         conn = DbManager.getConnection(true);
+     } catch (SQLException ex) {
+         System.out.println(ex);
+     }
 
-       getIndexWriter(true);
+     getIndexWriter(true);
 
-       Statement s = conn.createStatement();
-       Statement sc = conn.createStatement();
-       ResultSet rs = s.executeQuery("SELECT * FROM Item");
+     Statement s = conn.createStatement();
+     Statement sc = conn.createStatement();
+     ResultSet rs = s.executeQuery("SELECT * FROM Item");
 
-       while( rs.next() ){
+     while(rs.next()){
         int itemid = rs.getInt("ItemID");
         String query = "SELECT * FROM ItemCategory Where ItemID = '" + Integer.toString(itemid) + "';"; 
         ResultSet rsc = sc.executeQuery(query);
@@ -94,10 +92,10 @@ public class Indexer {
 
         // close the database connection
     try {
-       conn.close();
-   } catch (SQLException ex) {
-       System.out.println(ex);
-   }
+     conn.close();
+ } catch (SQLException ex) {
+     System.out.println(ex);
+ }
 }    
 
 public static void main(String args[]) throws SQLException, IOException {

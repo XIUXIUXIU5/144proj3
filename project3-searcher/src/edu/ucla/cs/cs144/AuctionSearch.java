@@ -73,13 +73,13 @@ public class AuctionSearch implements IAuctionSearch {
 		IndexSearcher s = null;
 		Query q = null;
 		SearchResult[] result = null;
+		QueryParser p = getQueryParser();
 
 		try {
 			s = getSearchEngine();
 		} catch (IOException ex) {
 			System.out.println(ex);
 		}
-		QueryParser p = getQueryParser();
 
 		try {
 			q = p.parse(query);
@@ -107,7 +107,7 @@ public class AuctionSearch implements IAuctionSearch {
 
 	public SearchResult[] spatialSearch(String query, SearchRegion region,
 		int numResultsToSkip, int numResultsToReturn) {
-		// TODO: Your code here!
+
 		String createPoly = "SET @poly ='Polygon(("+ region.getLx() +" "+ region.getLy() +","+ region.getRx()+" "+region.getLy()+","+region.getRx()+" "+region.getRy()+","+region.getLx()+" "+region.getRy()+","+region.getLx() +" "+ region.getLy()+ "))';";
 		String spactialQ = "select ItemID from ItemRegion where MBRContains(GeomFromText(@poly),LocationPoint);";
 
@@ -115,7 +115,7 @@ public class AuctionSearch implements IAuctionSearch {
 		Statement s = null;
 		Statement cs = null;
 		ResultSet rs = null;
-        // create a connection to the database to retrieve Items from MySQL
+
 		HashSet<String> hash = new HashSet<String>();
 		SearchResult[] basicResult = basicSearch(query,numResultsToSkip,numResultsToReturn);
 		ArrayList<SearchResult> resultlist = new ArrayList<SearchResult>();
@@ -126,12 +126,10 @@ public class AuctionSearch implements IAuctionSearch {
 			cs = conn.createStatement();
 			cs.executeQuery(createPoly);
 			rs = s.executeQuery(spactialQ);
-			while( rs.next() ){
+			while(rs.next()){
 				String itemid = ""+rs.getInt("ItemID");
 				hash.add(itemid);
-
 			}
-
 			rs.close();
 			s.close();
 			conn.close();
@@ -141,14 +139,14 @@ public class AuctionSearch implements IAuctionSearch {
 
 		int j = 0;
 		while(resultlist.size() < numResultsToReturn && basicResult != null){
-		for (int i = 0; i < basicResult.length;i++ ) {
-			if(hash.contains(basicResult[i].getItemId()))
-			{
-				resultlist.add(basicResult[i]);
+			for (int i = 0; i < basicResult.length;i++ ) {
+				if(hash.contains(basicResult[i].getItemId()))
+				{
+					resultlist.add(basicResult[i]);
+				}
 			}
-		}
-		j++;
-		basicResult = basicSearch(query,numResultsToReturn*j, numResultsToReturn);			
+			j++;
+			basicResult = basicSearch(query,numResultsToReturn*j, numResultsToReturn);			
 		}
 
 		SearchResult[] result = new SearchResult[resultlist.size()];
@@ -157,15 +155,15 @@ public class AuctionSearch implements IAuctionSearch {
 	}
 
 	public String getXMLDataForItemId(String itemId) {
-		// TODO: Your code here!
+
 		String result = "";
 		Connection conn = null;
 		Statement s = null;
 		Statement sc = null;
 		ResultSet rs = null;
 		ResultSet rc = null;
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        SimpleDateFormat ss = new SimpleDateFormat("MMM-dd-yy hh:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+		SimpleDateFormat ss = new SimpleDateFormat("MMM-dd-yy hh:mm:ss");
 
 		try {
 			String query = "select * from Item where ItemID = " + itemId + ";";
@@ -173,39 +171,31 @@ public class AuctionSearch implements IAuctionSearch {
 			conn = DbManager.getConnection(true);
 			s = conn.createStatement();
 			sc = conn.createStatement();
-
 			rs = s.executeQuery(query);
 			rc = sc.executeQuery(queryc);
 			if (rs.next()) {
 				result += "<Item ItemID=\""+itemId+"\">\n  <Name>"+escapeChar(rs.getString("Name"))+ "</Name>";
 				while(rc.next())
-				{
 					result += "\n  <Category>"+escapeChar(rc.getString("Category"))+ "</Category>";
-				}
 
 				sc.close();
 				rc.close();
 				
 				String element = Double.toString(rs.getDouble("Currently"));
-				if (element.length() != 0) {
+				if (element.length() != 0) 
 					result += "\n  <Currently>$"+element+ "</Currently>";
-				}
 				
 				element = Double.toString(rs.getDouble("First_Bid"));
-				if (element.length() != 0) {
+				if (element.length() != 0) 
 					result += "\n  <First_Bid>$"+element+ "</First_Bid>";
-				}
 
 				element = Integer.toString(rs.getInt("Number_of_Bids"));
-				if (element.length() != 0) {
+				if (element.length() != 0) 
 					result += "\n  <Number_of_Bids>"+element+"</Number_of_Bids>";
-				}
 
-				if (rs.getInt("Number_of_Bids") == 0) {
+				if (rs.getInt("Number_of_Bids") == 0) 
 					result += "\n  <Bids />";
-				}
-				else
-				{
+				else {
 					String queryb = "select * from ItemBid where ItemID = " + itemId+ ";";
 					Statement sb = conn.createStatement();
 					ResultSet rb = sb.executeQuery(queryb);
@@ -217,6 +207,7 @@ public class AuctionSearch implements IAuctionSearch {
 						Statement sbidder = conn.createStatement();
 						ResultSet rbidder = sbidder.executeQuery(querybidder);
 						rbidder.next();
+						
 						result += "\n      <Bidder Rating=\""+Double.toString(rbidder.getDouble("Rating"))+"\" UserID=\""+rbidder.getString("BidderID")+"\">";
 						result += "\n        <Location>" +escapeChar(rbidder.getString("Location"))+"</Location>";
 						result += "\n        <Country>" +escapeChar(rbidder.getString("Country"))+"</Country>";
@@ -226,6 +217,7 @@ public class AuctionSearch implements IAuctionSearch {
 						result += "\n      <Time>"+ss.format(timeDate)+"</Time>";
 						result += "\n      <Amount>$"+rb.getString("Amount")+"</Amount>";
 						result += "\n    </Bid>";
+						
 						sbidder.close();
 						rbidder.close();
 					}
@@ -237,31 +229,26 @@ public class AuctionSearch implements IAuctionSearch {
 				
 				String latitude = rs.getString("Latitude");
 				String logitude = rs.getString("Logitude");
-				if (latitude.length()== 0 && logitude.length() == 0) {
+				if (latitude.length()== 0 && logitude.length() == 0) 
 					result += "\n  <Location>" +escapeChar(rs.getString("Location"))+"</Location>";
-				}
-				else
-				{
+				else {
 					result += "\n  <Location";
 					if (latitude.length() != 0) {
 						result += " Latitude=\"" +latitude+"\"";
-						if (logitude .length()!= 0) {
+						if (logitude .length()!= 0) 
 							result += " Longitude=\""+ logitude + "\">";
-						}
 						else
 							result += ">";
 					}
 					else
-					{
 						result +=" Longitude=\""+ logitude + "\">";
-					}
 					result += escapeChar(rs.getString("Location")) + "</Location>";
 				}
 
 				element = escapeChar(rs.getString("Country"));
-				if (element.length() != 0) {
+				if (element.length() != 0) 
 					result += "\n  <Country>"+element+"</Country>";
-				}
+				
 				element = rs.getString("Started");
 				if (element.length() != 0) {
 					Date startdate = sdf.parse(element);
@@ -270,13 +257,13 @@ public class AuctionSearch implements IAuctionSearch {
 				element = rs.getString("Ends");
 				if (element.length() != 0) {
 					Date enddate = sdf.parse(element);
-
 					result += "\n  <Ends>"+ss.format(enddate)+"</Ends>";
 				}
 
 				String queryseller = "select * from Seller where SellerID = \"" + rs.getString("SellerID")+ "\";";
 				Statement sseller = conn.createStatement();
 				ResultSet rseller = sseller.executeQuery(queryseller);
+				
 				rseller.next();
 				result += "\n  <Seller Rating=\""+Double.toString(rseller.getDouble("Rating"))+ "\" UserID=\""+rseller.getString("SellerID")+"\" />";
 
@@ -299,32 +286,32 @@ public class AuctionSearch implements IAuctionSearch {
 	}
 	
 	private String escapeChar(final String text) {
-      String result = "";
-      for (int i = 0; i < text.length(); i++) {
-         char c = text.charAt(i);
-         switch (c) {
-         case '\"':
-            result += "&quot;";
-            break;
-         case '\'':
-            result += "&apos;";
-            break;
-         case '<':
-            result += "&lt;";
-            break;
-         case '>':
-            result += "&gt;";
-            break;
-         case '&':
-            result += "&amp;";
-            break;
-         default:
-            result += c;
-            break;
-         }
-      }
-      return result;
-   }
+		String result = "";
+		for (int i = 0; i < text.length(); i++) {
+			char c = text.charAt(i);
+			switch (c) {
+				case '\"':
+				result += "&quot;";
+				break;
+				case '\'':
+				result += "&apos;";
+				break;
+				case '<':
+				result += "&lt;";
+				break;
+				case '>':
+				result += "&gt;";
+				break;
+				case '&':
+				result += "&amp;";
+				break;
+				default:
+				result += c;
+				break;
+			}
+		}
+		return result;
+	}
 
 	public String echo(String message) {
 		return message;
