@@ -235,25 +235,25 @@ public class AuctionSearch implements IAuctionSearch {
 				}
 
 				
-				Double latitude = rs.getDouble("Latitude");
-				Double logitude = rs.getDouble("Logitude");
-				if (latitude== 0 && logitude == 0) {
+				String latitude = rs.getString("Latitude");
+				String logitude = rs.getString("Logitude");
+				if (latitude.length()== 0 && logitude.length() == 0) {
 					result += "\n  <Location>" +escapeChar(rs.getString("Location"))+"</Location>";
 				}
 				else
 				{
 					result += "\n  <Location";
-					if (latitude != 0) {
-						result += " Latitude=\"" +Double.toString(latitude)+"\"";
-						if (logitude != 0) {
-							result += " Longitude=\""+ Double.toString(logitude) + "\">";
+					if (latitude.length() != 0) {
+						result += " Latitude=\"" +latitude+"\"";
+						if (logitude .length()!= 0) {
+							result += " Longitude=\""+ logitude + "\">";
 						}
 						else
 							result += ">";
 					}
 					else
 					{
-						result +=" Longitude=\""+ Double.toString(logitude) + "\">";
+						result +=" Longitude=\""+ logitude + "\">";
 					}
 					result += escapeChar(rs.getString("Location")) + "</Location>";
 				}
