@@ -1,2 +1,2 @@
 ALTER TABLE ItemRegion DROP INDEX LocationPoint;
-DROP TABLE ItemRegion;
+DROP TABLE IF EXISTS ItemRegion;

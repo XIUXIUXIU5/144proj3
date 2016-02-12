@@ -15,15 +15,15 @@ public class AuctionSearchTest {
 		String message = "Test message";
 		String reply = as.echo(message);
 		System.out.println("Reply: " + reply);
-		/*
-		String query = "star trek";
-		SearchResult[] basicResults = as.basicSearch(query, 0, 1464);
-		System.out.println("Basic Seacrh Query: " + query);
-		System.out.println("Received " + basicResults.length + " results");
-		for(SearchResult result : basicResults) {
-			System.out.println(result.getItemId() + ": " + result.getName());
-		}
-		*/
+		
+		// String query = "star trek";
+		// SearchResult[] basicResults = as.basicSearch(query, 0, 1464);
+		// System.out.println("Basic Seacrh Query: " + query);
+		// System.out.println("Received " + basicResults.length + " results");
+		// for(SearchResult result : basicResults) {
+		// 	System.out.println(result.getItemId() + ": " + result.getName());
+		// }
+		
 		SearchRegion region =
 		    new SearchRegion(33.774, -118.63, 34.201, -117.38); 
 		SearchResult[] spatialResults = as.spatialSearch("camera", region, 0, 20);

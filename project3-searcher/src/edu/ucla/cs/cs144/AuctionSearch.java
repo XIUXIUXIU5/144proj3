@@ -108,11 +108,13 @@ public class AuctionSearch implements IAuctionSearch {
 	public SearchResult[] spatialSearch(String query, SearchRegion region,
 		int numResultsToSkip, int numResultsToReturn) {
 		// TODO: Your code here!
-		String spactialQ = "select ItemID from ItemRegion where " + region.getLx() +"< x(LocationPoint) and x(LocationPoint) < "+ region.getRx()+" and y(LocationPoint) < "+region.getRy()+" and y(LocationPoint) > "+region.getLy()+";";
+		String createPoly = "SET @poly ='Polygon(("+ region.getLx() +" "+ region.getLy() +","+ region.getRx()+" "+region.getLy()+","+region.getRx()+" "+region.getRy()+","+region.getLx()+" "+region.getRy()+","+region.getLx() +" "+ region.getLy()+ "))';";
+		String spactialQ = "select ItemID from ItemRegion where MBRContains(GeomFromText(@poly),LocationPoint);";
+
 		Connection conn = null;
 		Statement s = null;
+		Statement cs = null;
 		ResultSet rs = null;
-		System.out.println(spactialQ);
         // create a connection to the database to retrieve Items from MySQL
 		HashSet<String> hash = new HashSet<String>();
 		SearchResult[] basicResult = basicSearch(query,numResultsToSkip,numResultsToReturn);
@@ -121,12 +123,15 @@ public class AuctionSearch implements IAuctionSearch {
 		try {
 			conn = DbManager.getConnection(true);
 			s = conn.createStatement();
+			cs = conn.createStatement();
+			cs.executeQuery(createPoly);
 			rs = s.executeQuery(spactialQ);
 			while( rs.next() ){
 				String itemid = ""+rs.getInt("ItemID");
 				hash.add(itemid);
 
 			}
+
 			rs.close();
 			s.close();
 			conn.close();
@@ -134,15 +139,18 @@ public class AuctionSearch implements IAuctionSearch {
 			System.out.println(ex);
 		}
 
-		System.out.println(hash.size());
+		int j = 0;
+		while(resultlist.size() < numResultsToReturn && basicResult != null){
 		for (int i = 0; i < basicResult.length;i++ ) {
 			if(hash.contains(basicResult[i].getItemId()))
 			{
 				resultlist.add(basicResult[i]);
 			}
 		}
+		j++;
+		basicResult = basicSearch(query,numResultsToReturn*j, numResultsToReturn);			
+		}
 
-		System.out.println(resultlist.size());
 		SearchResult[] result = new SearchResult[resultlist.size()];
 		result = resultlist.toArray(result);
 		return result;
@@ -238,14 +246,14 @@ public class AuctionSearch implements IAuctionSearch {
 					if (latitude != 0) {
 						result += " Latitude=\"" +Double.toString(latitude)+"\"";
 						if (logitude != 0) {
-							result += " Logitude=\""+ Double.toString(logitude) + "\">";
+							result += " Longitude=\""+ Double.toString(logitude) + "\">";
 						}
 						else
 							result += ">";
 					}
 					else
 					{
-						result +=" Logitude=\""+ Double.toString(logitude) + "\">";
+						result +=" Longitude=\""+ Double.toString(logitude) + "\">";
 					}
 					result += rs.getString("Location") + "</Location>";
 				}
