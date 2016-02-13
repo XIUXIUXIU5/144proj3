@@ -50,34 +50,17 @@ public class AuctionSearch implements IAuctionSearch {
          * placed at src/edu/ucla/cs/cs144.
          *
          */
-
-	private IndexSearcher searcher = null;
-	private QueryParser parser = null;
-
-	public IndexSearcher getSearchEngine() throws IOException {
-		if (searcher == null) {
-			searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File("/var/lib/lucene/index1"))));
-		}
-		return searcher;
-	}
-
-	public QueryParser getQueryParser() {
-		if (parser == null) {
-			parser = new QueryParser("content", new StandardAnalyzer());
-		}
-		return parser;
-	}
 	
 	public SearchResult[] basicSearch(String query, int numResultsToSkip, 
-		int numResultsToReturn) {
+		 int numResultsToReturn) {
 		IndexSearcher s = null;
 		Query q = null;
 		SearchResult[] result = null;
-		QueryParser p = getQueryParser();
+		QueryParser p = new QueryParser("content", new StandardAnalyzer());
 		Boolean returnR = false;
 
 		try {
-			s = getSearchEngine();
+			s = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File("/var/lib/lucene/index1"))));
 		} catch (IOException ex) {
 			System.out.println(ex);
 		}
@@ -111,7 +94,7 @@ public class AuctionSearch implements IAuctionSearch {
 	}
 
 	public SearchResult[] spatialSearch(String query, SearchRegion region,
-		int numResultsToSkip, int numResultsToReturn) {
+		 int numResultsToSkip, int numResultsToReturn) {
 
 		String createPoly = "SET @poly ='Polygon(("+ region.getLx() +" "+ region.getLy() +","+ region.getRx()+" "+region.getLy()+","+region.getRx()+" "+region.getRy()+","+region.getLx()+" "+region.getRy()+","+region.getLx() +" "+ region.getLy()+ "))';";
 		String spactialQ = "select ItemID from ItemRegion where MBRContains(GeomFromText(@poly),LocationPoint);";
@@ -164,7 +147,7 @@ public class AuctionSearch implements IAuctionSearch {
 
 	public String getXMLDataForItemId(String itemId) {
 
-		String result = "";
+		 String result = "";
 		Connection conn = null;
 		Statement s = null;
 		Statement sc = null;
